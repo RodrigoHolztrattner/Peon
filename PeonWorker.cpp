@@ -20,8 +20,6 @@ __InternalPeon::__InternalPeonWorker::~__InternalPeonWorker()
 static unsigned int JobWorkerId = 0;
 #endif
 
-
-
 void __InternalPeon::__InternalPeonWorker::SetQueueSize(unsigned int _jobBufferSize)
 {
 	// Initialize our concurrent queue

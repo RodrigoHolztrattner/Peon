@@ -6,16 +6,13 @@
 //////////////
 // INCLUDES //
 //////////////
+#include "PeonConfig.h"
 #include <atomic>
-// #include <pthread.h>
 #include <functional>
 
 /////////////
 // DEFINES //
 /////////////
-
-#define NamespaceBegin(name) namespace name {
-#define NamespaceEnd(name) }
 
 // Return if a job is done
 #define HasJobCompleted(job)	((job->GetTotalUnfinishedJobs()) <= 0)
@@ -25,7 +22,7 @@
 ///////////////
 
 // __InternalPeon
-NamespaceBegin(__InternalPeon)
+PeonNamespaceBegin(__InternalPeon)
 
 // WorkerThread class
 class __InternalPeonWorker;
@@ -139,4 +136,4 @@ static bool IsEmptyJob(__InternalPeonJob* _job)
 }
 
 // __InternalPeon
-NamespaceEnd(__InternalPeon)
+PeonNamespaceEnd(__InternalPeon)

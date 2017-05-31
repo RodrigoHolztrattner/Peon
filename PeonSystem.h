@@ -6,6 +6,7 @@
 //////////////
 // INCLUDES //
 //////////////
+#include "PeonConfig.h"
 #include <atomic>
 #include <vector>
 #include "PeonJob.h"
@@ -24,7 +25,7 @@
 ///////////////
 
 // __InternalPeon
-NamespaceBegin(__InternalPeon)
+PeonNamespaceBegin(__InternalPeon)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: __InternalPeonSystem
@@ -251,4 +252,4 @@ private:
 
 
 // __InternalPeon
-NamespaceEnd(__InternalPeon)
+PeonNamespaceEnd(__InternalPeon)

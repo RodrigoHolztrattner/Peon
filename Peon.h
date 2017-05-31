@@ -6,8 +6,7 @@
 //////////////
 // INCLUDES //
 //////////////
-#include "..\NamespaceDefinitions.h"
-#include "..\GlobalInstance.h"
+#include "PeonConfig.h"
 #include "PeonSystem.h"
 #include "PeonWorker.h"
 #include "PeonJob.h"
@@ -21,7 +20,7 @@
 ///////////////
 
 // Peon
-NamespaceBegin(Peon)
+PeonNamespaceBegin(Peon)
 
 ////////////
 // GLOBAL //
@@ -31,7 +30,7 @@ typedef __InternalPeon::__InternalPeonWorker	Worker;
 typedef __InternalPeon::__InternalPeonJob		Job;
 
 // Our peon system global instance
-static GlobalInstance<__InternalPeon::__InternalPeonSystem> PeonSystemGlobalInstance;
+static __InternalPeon::GlobalInstance<__InternalPeon::__InternalPeonSystem> PeonSystemGlobalInstance;
 
 // Initialize the peon system
 template <class ThreadUserDatType = unsigned char>
@@ -141,4 +140,4 @@ static void ResetWorkFrame()
 }
 
 // Peon
-NamespaceEnd(Peon)
+PeonNamespaceEnd(Peon)

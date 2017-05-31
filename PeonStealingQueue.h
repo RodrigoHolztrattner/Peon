@@ -6,7 +6,7 @@
 //////////////
 // INCLUDES //
 //////////////
-// #include <pthread.h>
+#include "PeonConfig.h"
 #include "PeonJob.h"
 #include <vector>
 
@@ -15,7 +15,7 @@
 ///////////////
 
 // __InternalPeon
-NamespaceBegin(__InternalPeon)
+PeonNamespaceBegin(__InternalPeon)
 
 /////////////
 // DEFINES //
@@ -174,4 +174,4 @@ private:
 };
 
 // __InternalPeon
-NamespaceEnd(__InternalPeon)
+PeonNamespaceEnd(__InternalPeon)

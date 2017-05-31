@@ -13,7 +13,7 @@
 #include <thread>
 
 #include "PeonJob.h"
-#include "..\ConcurrentQueue.h"
+#include "PeonConcurrentQueue.h"
 
 /////////////
 // DEFINES //
@@ -31,7 +31,7 @@
 ///////////////
 
 // __InternalPeon
-NamespaceBegin(__InternalPeon)
+PeonNamespaceBegin(__InternalPeon)
 
 // We know the job system
 class __InternalPeonSystem;
@@ -127,4 +127,4 @@ private: //////
 };
 
 // __InternalPeon
-NamespaceEnd(__InternalPeon)
+PeonNamespaceEnd(__InternalPeon)
