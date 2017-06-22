@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: __InternalPeonJob.h
+// Filename: PeonJob.h
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
@@ -25,93 +25,48 @@
 PeonNamespaceBegin(__InternalPeon)
 
 // WorkerThread class
-class __InternalPeonWorker;
+class PeonWorker;
 
 ////////////
 // GLOBAL //
 ////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-// Class name: __InternalPeonJob
+// Class name: PeonJob
 ////////////////////////////////////////////////////////////////////////////////
-class __InternalPeonJob
+class PeonJob
 {
 public:
-	__InternalPeonJob();
-	__InternalPeonJob(const __InternalPeonJob&);
-	~__InternalPeonJob();
+	PeonJob();
+	PeonJob(const PeonJob&);
+	~PeonJob();
 
 	// Initialize the job
-	bool Initialize()
-	{
-		// Set the initial data
-		m_CurrentWorkerThread = nullptr;
-		m_ParentJob = nullptr;
-		m_UnfinishedJobs = 1;
-
-		return true;
-	}
+	bool Initialize();
 
 	// Set the job function (syntax: (*MEMBER, &MEMBER::FUNCTION, DATA))
-	void SetJobFunction(__InternalPeonJob* _parentJob, std::function<void()> _function)
-	{
-		using namespace std::placeholders; // for `_1`
-
-		// Set the function and the data
-		m_Function = _function;
-
-		// Set the current worker thread
-		m_ParentJob = _parentJob;
-	}
+	void SetJobFunction(PeonJob* _parentJob, std::function<void()> _function);
 
 	// Finish this job
 	void Finish();
 
 	// Run the job function
-	void RunJobFunction()
-	{
-		m_Function();
-	}
+	void RunJobFunction();
 
 	// Return the parent job
-	__InternalPeonJob* GetParent()
-	{
-		return m_ParentJob;
-	}
+	PeonJob* GetParent();
 
 	// Set the worker thread
-	void SetWorkerThread(__InternalPeon::__InternalPeonWorker* _workerThread)
-	{
-		m_CurrentWorkerThread = _workerThread;
-	}
+	void SetWorkerThread(PeonWorker* _workerThread);
 
 	// Return the worker thread
-	__InternalPeon::__InternalPeonWorker* GetWorkerThread()
-	{
-		// Set the current job
-		__InternalPeonJob* currentJob = this;
-
-		// Check if this job is the root one
-		while (currentJob->GetParent() != nullptr)
-		{
-			// Iterate until we find the root job
-			currentJob = currentJob->GetParent();
-		}
-
-		return currentJob->m_CurrentWorkerThread;
-	}
+	PeonWorker* GetWorkerThread();
 
 	// Set the parent job
-	void SetParentJob(__InternalPeonJob* _job)
-	{
-		m_ParentJob = _job;
-	}
+	void SetParentJob(PeonJob* _job);
 
 	// Return the number of unfinished jobs
-	int32_t GetTotalUnfinishedJobs()
-	{
-		return m_UnfinishedJobs;
-	}
+	int32_t GetTotalUnfinishedJobs();
 
 protected:
 
@@ -119,10 +74,10 @@ protected:
 	std::function<void()> m_Function;
 
 	// The parent job
-	__InternalPeonJob* m_ParentJob;
+	PeonJob* m_ParentJob;
 
 	// The current worker thread
-	__InternalPeon::__InternalPeonWorker* m_CurrentWorkerThread;
+	PeonWorker* m_CurrentWorkerThread;
 
 public: // Arrumar public / private
 
@@ -130,10 +85,12 @@ public: // Arrumar public / private
 	std::atomic<int> m_UnfinishedJobs;
 };
 
-static bool IsEmptyJob(__InternalPeonJob* _job)
+/*
+static bool IsEmptyJob(PeonJob* _job)
 {
 	return _job == nullptr ? true : false;
 }
+*/
 
 // __InternalPeon
 PeonNamespaceEnd(__InternalPeon)

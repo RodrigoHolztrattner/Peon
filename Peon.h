@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: __InternalPeonJob.h
+// Filename: PeonJob.h
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
@@ -26,11 +26,12 @@ PeonNamespaceBegin(Peon)
 // GLOBAL //
 ////////////
 
-typedef __InternalPeon::__InternalPeonWorker	Worker;
-typedef __InternalPeon::__InternalPeonJob		Job;
+typedef __InternalPeon::PeonWorker	Worker;
+typedef __InternalPeon::PeonJob		Job;
+typedef __InternalPeon::PeonJob		Container;
 
 // Our peon system global instance
-static __InternalPeon::GlobalInstance<__InternalPeon::__InternalPeonSystem> PeonSystemGlobalInstance;
+static __InternalPeon::GlobalInstance<__InternalPeon::PeonSystem> PeonSystemGlobalInstance;
 
 // Initialize the peon system
 template <class ThreadUserDatType = unsigned char>
@@ -40,16 +41,10 @@ static bool Initialize(unsigned int _numberWorkerThreads, unsigned int _jobBuffe
 	return PeonSystemGlobalInstance->Initialize<ThreadUserDatType>(_numberWorkerThreads, _jobBufferSize, _useUserData);
 }
 
-// Start the working area where we can create any other peons
-static Job* CreateWorkingArea(std::function<void()> _function)
-{
-	return PeonSystemGlobalInstance->CreateJobArea(_function);
-}
-
 // Create an independent job
 static Job* CreateJob(std::function<void()> _function)
 {
-	return PeonSystemGlobalInstance->CreateJobArea(_function);
+	return PeonSystemGlobalInstance->CreateJob(_function);
 }
 
 // Create a child job
@@ -65,9 +60,9 @@ static Job* CreateChildJob(Job* _parentJob, std::function<void()> _function)
 }
 
 // Create a job container
-static Job* CreateJobContainer()
+static Container* CreateJobContainer()
 {
-	__InternalPeon::__InternalPeonSystem* jobSystem = (__InternalPeon::__InternalPeonSystem*)PeonSystemGlobalInstance.GetInstance(); // Remove the const
+	__InternalPeon::PeonSystem* jobSystem = (__InternalPeon::PeonSystem*)PeonSystemGlobalInstance.GetInstance(); // Remove the const
 	return PeonSystemGlobalInstance->CreateJob([=] { jobSystem->JobContainerHelper(nullptr); });
 }
 
@@ -86,13 +81,13 @@ static void WaitForJob(Job* _job)
 // Return the current job for the actual context
 static Job* GetCurrentJob()
 {
-	return __InternalPeon::__InternalPeonWorker::GetCurrentJob();
+	return __InternalPeon::PeonWorker::GetCurrentJob();
 }
 
 // Return the current worker for the actual context
 static Worker* GetCurrentWorker()
 {
-	return __InternalPeon::__InternalPeonSystem::GetCurrentPeon();
+	return __InternalPeon::PeonSystem::GetCurrentPeon();
 }
 
 // Return the current worker index for the actual context
