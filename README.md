@@ -1,4 +1,4 @@
-#Peon, a work stealing queue system.
+# Peon, a work stealing queue system.
 
 Originalmente feito para me ajudar com a divisão de processamento das engines de games que trabalho, acabou se tornando um modulo quase essencial em todos os meus projetos.
 
