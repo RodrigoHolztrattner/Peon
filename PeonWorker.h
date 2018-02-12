@@ -13,7 +13,6 @@
 #include <thread>
 
 #include "PeonJob.h"
-#include "PeonConcurrentQueue.h"
 #include "PeonStealingQueue.h"
 
 /////////////
