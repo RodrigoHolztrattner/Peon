@@ -104,16 +104,16 @@ static int GetTotalWorkers()
 
 // Return a peon user data by index
 template <class PeonUserDatType>
-static PeonUserDatType* GetUserData(unsigned int _workerIndex)
+static PeonUserDatType* GetCustomData(unsigned int _workerIndex)
 {
-	return PeonSystemGlobalInstance->GetUserData<PeonUserDatType>(_workerIndex);
+	return PeonSystemGlobalInstance->GetCustomData<PeonUserDatType>(_workerIndex);
 }
 
 // Return the current peon worker user data
 template <class PeonUserDatType>
-static PeonUserDatType* GetUserData()
+static PeonUserDatType* GetCustomData()
 {
-	return PeonSystemGlobalInstance->GetUserData<PeonUserDatType>(GetCurrentWorkerIndex());
+	return PeonSystemGlobalInstance->GetCustomData<PeonUserDatType>(GetCurrentWorkerIndex());
 }
 
 // Block all threads execution

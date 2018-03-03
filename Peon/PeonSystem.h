@@ -93,10 +93,10 @@ public:
 	}
 
 	// Return the thread user data by thread index
-	template <class ThreadUserDatType>
-	ThreadUserDatType* GetUserData(unsigned int _threadIndex)
+	template <class ThreadCustomDataType>
+	ThreadCustomDataType* GetCustomData(unsigned int _threadIndex)
 	{
-		return (ThreadUserDatType*)m_ThredUserData[_threadIndex];
+		return (ThreadCustomDataType*)m_ThredUserData[_threadIndex];
 	}
 
 	// Return the total worker threads
