@@ -9,7 +9,7 @@ Basically this system works by breaking the code into smaller pieces that can be
 
 In essence it's a work stealing queue system designed for real time applications.
 
-The implementation here is based on the Lock-Free-Work-Stealing idea from Stefan Reinalter, more info can be found on his website https://blog.molecular-matters.com, a huuuge thanks for this sir!
+The implementation here is based on the Lock-Free-Work-Stealing idea from Stefan Reinalter, more info can be found on his website https://blog.molecular-matters.com, a huuuge thanks for this, sir!
 
 --------------------------------
 
@@ -21,7 +21,7 @@ The implementation here is based on the Lock-Free-Work-Stealing idea from Stefan
 - The magic will just happen!
 
 > The library itself was made to be used in a per-thread basis, that is, only one instance per thread is allowed!
-> Using this approach we get a huge thread control and alot of flexibility.
+> Using this approach, we get a huge thread control and a lot of flexibility.
 > Keep in mind that you still can create different threads from any type by your own.
 
 # Dependencies
@@ -30,7 +30,7 @@ No dependencies, pure C++, just try to use the lastest version because I'm alway
 
 # Install
 
-Just copy & paste every *.h* and *.cpp* from the root folder into your project. To use the library just include the **Peon.h** as it includes
+Just copy & paste every *.h* and *.cpp* from the root folder into your project. To use the library, just include the **Peon.h** as it includes
 every other file needed.
 
 The project was built using the Visual Studio 2017 and should work properly just by opening its solution file.
@@ -112,7 +112,7 @@ Now the only remaning thing to begin the execution is the **StartJob** method:
 scheduler->StartJob(myJob);
 ```
 
-Now the job was configured and one of our worker threads will execute this code!
+Now the job has been configured and one of our worker threads will execute this code!
 
 ### Wait for Job
 
@@ -155,7 +155,7 @@ scheduler->WaitForJob(myContainer);
 ### Control
 
 There are some utility methods that you can use in your application.
-Those are the ones:
+These are the ones:
 
 ```c++
 
@@ -178,7 +178,7 @@ Peon::Job* currentJob = scheduler->GetCurrentJob();
 Peon::Worker* currentWorker = scheduler->GetCurrentWorker();
 ```
 
-> Just to clarify, the **GetCurrentWorker** method exists for debug purposes and you wont be gaining any functionality from the worker object.
+> Just to clarify, the **GetCurrentWorker** method exists for debug purposes and you won't be gaining any functionality from the worker object.
 
 ### Considerations
 
