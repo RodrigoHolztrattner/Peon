@@ -20,7 +20,7 @@ The implementation here is based on the Lock-Free-Work-Stealing idea from Stefan
 - You will start those jobs and...
 - The magic will just happen!
 
-> The library itself was made to be used in a per-thread approach, that is, only one instance per thread is allowed!
+> The library itself was made to be used in a per-thread basis, that is, only one instance per thread is allowed!
 > Using this approach we get a huge thread control and alot of flexibility.
 > Keep in mind that you still can create different threads from any type by your own.
 
@@ -44,7 +44,7 @@ The buffer size determines how many jobs you can create/run without needing to c
 not use an extensible array for all jobs, instead we will use a fixed one (no memory allocation = more speed) and just refresh this array
 when we are close to the limit or our "frame" finished.
 
-> Keep in mind that checking the number of threads is you responsability and in the current implementation the system will not refresh by its own.
+> Keep in mind that checking the number of jobs is you responsability and in the current implementation the system will not refresh by its own.
 
 ### Initializing the Peon System
 
