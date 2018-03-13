@@ -20,9 +20,9 @@ The implementation here is based on the Lock-Free-Work-Stealing idea from Stefan
 - You will start those jobs and...
 - The magic will just happen!
 
-> The library itself was made using the singleton idea, only one instance can be running at any given time.
+> The library itself was made to be used in a per-thread approach, that is, only one instance per thread is allowed!
 > Using this approach we get a huge thread control and alot of flexibility.
-> Keep in mind that you still can create threads in your own.
+> Keep in mind that you still can create different threads from any type by your own.
 
 # Dependencies
 
@@ -53,14 +53,17 @@ method, this will make each worker thread allocate a <your class/struct type her
 remember to pass the last !optional! boolean parameter as true).
 
 ```c++
+// Create our scheduler instance
+Peon::Scheduler scheduler = new Peon::Scheduler();
+
 // Initialize without custom data
-if(!Peon::Initialize(4, 4096))
+if(!scheduler->Initialize(4, 4096))
 {
 	return false;
 }
 
 // Initialize with custom data
-if(!Peon::Initialize<MyCustomType>(4, 4096, true))
+if(!scheduler->Initialize<MyCustomType>(4, 4096, true))
 {
 	return false;
 }
@@ -70,10 +73,10 @@ To retrieve the custom data, use the **GetCustomData** method:
 
 ```c++
 // Get the custom data from the current running thread (you SHOULD ensure that we are inside a job)
-MyCustomType* myData = Peon::GetCustomData();
+MyCustomType* myData = scheduler->GetCustomData();
 
 // Get the custom data from the given thread index (from 0 to the maximum worker threads)
-MyCustomType* myData = Peon::GetCustomData(2);
+MyCustomType* myData = scheduler->GetCustomData(2);
 ```
 
 ### Creating and Starting a Job
@@ -85,19 +88,19 @@ Creating a job is simple:
 
 ```c++
 // Creating an independent job
-Peon::Job* myJob = Peon::CreateJob([]()
+Peon::Job* myJob = scheduler->CreateJob([]()
 {
     std::cout << "Hello world!" << std::endl;
 });
 
 // Creating a child job
-Peon::Job* myJob = Peon::CreateChildJob(parentJob, []()
+Peon::Job* myJob = scheduler->CreateChildJob(parentJob, []()
 {
     std::cout << "Hello world!" << std::endl;
 });
 
 // Creating a child job for the current running worker thread
-Peon::Job* myJob = Peon::CreateChildJob([]()
+Peon::Job* myJob = scheduler->CreateChildJob([]()
 {
     std::cout << "Hello world!" << std::endl;
 });
@@ -106,7 +109,7 @@ Peon::Job* myJob = Peon::CreateChildJob([]()
 Now the only this remaning to begin the execution is the **StartJob** method:
 
 ```c++
-Peon::StartJob(myJob);
+scheduler->StartJob(myJob);
 ```
 
 Now one of our worker threads will execute this code!
@@ -116,7 +119,7 @@ Now one of our worker threads will execute this code!
 Of course we need a method to synchronize, like the *join* one that exist from almost any thread system, so this is the one we have:
 
 ```c++
-Peon::WaitForJob(myJob);
+scheduler->WaitForJob(myJob);
 ```
 
 ### Containers
@@ -125,26 +128,28 @@ The container type is supposed to be used as a parent for many children, you wil
 
 ```c++
 // First we will create our container
-Peon::Container* myContainer = Peon::CreateJobContainer();
+Peon::Container* myContainer = scheduler->CreateJobContainer();
+
+/* you can start the container job here or after creating those child jobs, doesn't matter */
 
 // Now we will create multiple jobs
 for(int i=0; i<1000; i++)
 {
     // Create a simple job
-    Peon::Job* currentJob = Peon::CreateChildJob(myContainer, [=]()
+    Peon::Job* currentJob = scheduler->CreateChildJob(myContainer, [=]()
     {
         std::cout << "Hello world with index: " << i << std::endl;
     });
 
     // Also start our job (we will lost the variable reference on the next iteration)
-    Peon::StartJob(currentJob);
+    scheduler->StartJob(currentJob);
 }
 
 // Start the container execution
-Peon::StartJob(myContainer);
+scheduler->StartJob(myContainer);
 
 // Wait until each of those jobs finish
-Peon::WaitForJob(myContainer);
+scheduler->WaitForJob(myContainer);
 ```
 
 ### Control
@@ -155,22 +160,22 @@ Those are the ones:
 ```c++
 
 // Return the total number of worker threads
-uint32_t totalNumberWorkers = Peon::GetTotalWorkers();
+uint32_t totalNumberWorkers = scheduler->GetTotalWorkers();
 
 // Return the current worker index (from 0 to the maximum number of threads)
-uint32_t currentWorkerIndex = Peon::GetCurrentWorkerIndex();
+uint32_t currentWorkerIndex = scheduler->GetCurrentWorkerIndex();
 
 // Block the execution of any new created job that could start after this method invocation
-Peon::BlockWorkerExecution();
+scheduler->BlockWorkerExecution();
 
 // Release the execution block from the last method
-Peon::ReleaseWorkerExecution();
+scheduler->ReleaseWorkerExecution();
 
 // Return the current job object for the current context (you MUST ensure we are inside a job)
-Peon::Job* currentJob = Peon::GetCurrentJob();
+Peon::Job* currentJob = scheduler->GetCurrentJob();
 
 // Return the current worker object for the current context (again, same rules, you must ensure we are inside a job)
-Peon::Worker* currentWorker = Peon::GetCurrentWorker();
+Peon::Worker* currentWorker = scheduler->GetCurrentWorker();
 ```
 
 > Just to clarify, the **GetCurrentWorker** method exists for debug purposes and you wont be gaining any functionality from the worker object.
