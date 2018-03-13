@@ -82,7 +82,7 @@ MyCustomType* myData = scheduler->GetCustomData(2);
 ### Creating and Starting a Job
 
 It's possible to create an independent job or a child job, using the hierarchical way you will be creating a dependency tree where each
-parent job depends on its children to finish first, allowing it to finish too.
+parent job depends on its children to finish first, then allowing it to finish too.
 
 Creating a job is simple:
 
@@ -106,13 +106,13 @@ Peon::Job* myJob = scheduler->CreateChildJob([]()
 });
 ```
 
-Now the only this remaning to begin the execution is the **StartJob** method:
+Now the only remaning thing to begin the execution is the **StartJob** method:
 
 ```c++
 scheduler->StartJob(myJob);
 ```
 
-Now one of our worker threads will execute this code!
+Now the job was configured and one of our worker threads will execute this code!
 
 ### Wait for Job
 
