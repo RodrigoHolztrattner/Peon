@@ -85,12 +85,8 @@ public: // Arrumar public / private
 	std::atomic<int> m_UnfinishedJobs;
 };
 
-/*
-static bool IsEmptyJob(PeonJob* _job)
-{
-	return _job == nullptr ? true : false;
-}
-*/
+// The container type
+typedef PeonJob	Container;
 
 // __InternalPeon
 PeonNamespaceEnd(__InternalPeon)

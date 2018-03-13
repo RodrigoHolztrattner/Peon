@@ -46,7 +46,7 @@ void __InternalPeon::PeonJob::Finish()
 	const int32_t unfinishedJobs = m_UnfinishedJobs;
 
 	// Check if there are no jobs remaining
-	if (!unfinishedJobs)
+	if (unfinishedJobs == 0)
 	{
 		// If we dont have any remaining jobs, we can decrement the number of jobs from our parent
 		// (if we have one).
@@ -63,7 +63,6 @@ void __InternalPeon::PeonJob::RunJobFunction()
     m_Function();
 }
 
-// Return the parent job
 __InternalPeon::PeonJob* __InternalPeon::PeonJob::GetParent()
 {
     return m_ParentJob;

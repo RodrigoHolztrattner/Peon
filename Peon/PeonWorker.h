@@ -88,6 +88,11 @@ public:
     // Return the job this worker ir working now
 	static PeonJob* GetCurrentJob();
 
+private:
+
+	// A fast random uint generator
+	unsigned int FastRandomUnsignedInteger();
+
 ///////////////
 // VARIABLES //
 private: //////
@@ -98,13 +103,11 @@ private: //////
 	// Array of jobs
 	PeonStealingQueue m_WorkQueue;
 
-	// Our job free list
-	PeonJob* m_JobFreeList;
-	unsigned int m_JobFreeListPosition;
-	unsigned int m_JobFreeListMax;
-
 	// The internal thread id
 	unsigned int m_ThreadId;
+
+	// A seed for our fast random unsigned integer generator
+	unsigned int m_Seed;
 };
 
 // __InternalPeon

@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "PeonWorker.h"
 #include "PeonSystem.h"
+#include <chrono>
 
 __InternalPeon::PeonWorker::PeonWorker()
 {
@@ -20,8 +21,9 @@ __InternalPeon::PeonWorker::~PeonWorker()
 static unsigned int JobWorkerId = 0;
 #endif
 
-// The thread local identifier
-thread_local int			CurrentLocalThreadIdentifier;
+// The thread local identifier and current job
+thread_local int						CurrentLocalThreadIdentifier;
+thread_local __InternalPeon::PeonJob*	CurrentThreadJob;
 
 int __InternalPeon::PeonWorker::GetCurrentLocalThreadIdentifier()
 {
@@ -31,27 +33,19 @@ int __InternalPeon::PeonWorker::GetCurrentLocalThreadIdentifier()
 void __InternalPeon::PeonWorker::SetQueueSize(unsigned int _jobBufferSize)
 {
 	// Initialize our concurrent queue
-	// m_WorkQueue = new moodycamel::ConcurrentQueue<__InternalPeon::PeonJob*>(_jobBufferSize);
     m_WorkQueue.Initialize(_jobBufferSize);
-
-	// Initialize our job free list
-	m_JobFreeList = new __InternalPeon::PeonJob[_jobBufferSize]();
-	m_JobFreeListPosition = 0;
-	m_JobFreeListMax = _jobBufferSize;
 }
 
 bool __InternalPeon::PeonWorker::Initialize(__InternalPeon::PeonSystem* _ownerSystem, int _threadId, bool _mainThread)
 {
-	// pthread_t thread;
-
 	// Set the thread id and owner system
 	m_ThreadId = _threadId;
 	m_OwnerSystem = _ownerSystem;
 
-	//
+#ifdef JobWorkerDebug
 	std::cout << "Thread with id: " << m_ThreadId << " created" << std::endl;
+#endif
 
-	// ?????????
 	// Check if this worker thread is the main one
 	if (!_mainThread)
 	{
@@ -79,6 +73,12 @@ void __InternalPeon::PeonWorker::ExecuteThreadAux()
 	}
 }
 
+unsigned int __InternalPeon::PeonWorker::FastRandomUnsignedInteger()
+{
+	m_Seed = (214013 * m_Seed + 2531011);
+	return (m_Seed >> 16) & 0x7FFF;
+}
+
 bool __InternalPeon::PeonWorker::GetJob(__InternalPeon::PeonJob** _job)
 {
 	// Primeira coisa, vamos ver se conseguimos pegar algum work do nosso queue interno
@@ -89,11 +89,8 @@ bool __InternalPeon::PeonWorker::GetJob(__InternalPeon::PeonJob** _job)
 		return true;
 	}
 
-	// Fast random number generator
-	auto FastRand = [](){static unsigned int g_seed;g_seed = (214013*g_seed+2531011);return (g_seed>>16)&0x7FFF;};
-
 	// Primeiramente pegamos um index aleatório de alguma thread e a array de threads
-	unsigned int randomIndex = FastRand() % m_OwnerSystem->GetTotalWorkerThreads();
+	unsigned int randomIndex = FastRandomUnsignedInteger() % m_OwnerSystem->GetTotalWorkers();
 	__InternalPeon::PeonWorker* workers = m_OwnerSystem->GetJobWorkers();
 
 	// Pegamos então o queue desta thread aleatória
@@ -120,14 +117,6 @@ bool __InternalPeon::PeonWorker::GetJob(__InternalPeon::PeonJob** _job)
 __InternalPeon::PeonJob* __InternalPeon::PeonWorker::GetFreshJob()
 {
     return m_WorkQueue.GetFreshJob();
-
-    // Select a valid job
-    PeonJob* selectedJob = &m_JobFreeList[m_JobFreeListPosition];
-
-    // Increment the free list position
-    m_JobFreeListPosition++;
-
-    return selectedJob;
 }
 
 __InternalPeon::PeonStealingQueue* __InternalPeon::PeonWorker::GetWorkerQueue()
@@ -138,6 +127,7 @@ __InternalPeon::PeonStealingQueue* __InternalPeon::PeonWorker::GetWorkerQueue()
 void __InternalPeon::PeonWorker::Yield()
 {
     std::this_thread::yield();
+	std::this_thread::sleep_for(std::chrono::microseconds(1));
 }
 
 int __InternalPeon::PeonWorker::GetThreadId()
@@ -147,14 +137,12 @@ int __InternalPeon::PeonWorker::GetThreadId()
 
 void __InternalPeon::PeonWorker::ResetFreeList()
 {
-    m_JobFreeListPosition = 0;
+	m_WorkQueue.Reset();
 }
-
-thread_local __InternalPeon::PeonJob*	CurrentThreadJob;
 
 void __InternalPeon::PeonWorker::ExecuteThread(void* _arg)
 {
-	if (__InternalPeon::PeonSystem::ThreadsBlocked())
+	if (m_OwnerSystem->WorkerExecutionStatus())
 	{
 		Yield();
 		return;
@@ -176,7 +164,10 @@ void __InternalPeon::PeonWorker::ExecuteThread(void* _arg)
 
 		// Set the current job for this thread
 		CurrentThreadJob = job;
-
+		if (job->GetTotalUnfinishedJobs() == 0)
+		{
+			result = result;
+		}
 		// Run the selected job
 		job->RunJobFunction();
 

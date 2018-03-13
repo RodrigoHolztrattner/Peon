@@ -93,23 +93,24 @@ public:
 	}
 
 	// Return the thread user data by thread index
-	template <class ThreadCustomDataType>
-	ThreadCustomDataType* GetCustomData(unsigned int _threadIndex)
+	template <class ThreadUserDatType>
+	ThreadUserDatType* GetUserData(unsigned int _threadIndex)
 	{
-		return (ThreadCustomDataType*)m_ThredUserData[_threadIndex];
+		return (ThreadUserDatType*)m_ThredUserData[_threadIndex];
+	}
+
+	// Return the thread user data by thread index
+	template <class ThreadUserDatType>
+	ThreadUserDatType* GetUserData()
+	{
+		return GetUserData(__InternalPeon::PeonWorker::GetCurrentLocalThreadIdentifier());
 	}
 
 	// Return the total worker threads
-	unsigned int GetTotalWorkerThreads()
-	{
-		return m_TotalWokerThreads;
-	}
+	unsigned int GetTotalWorkers();
 
 	// Return the job worker array
-	PeonWorker* GetJobWorkers()
-	{
-		return m_JobWorkers;
-	}
+	PeonWorker* GetJobWorkers();
 
 	// Reset the actual worker frame
 	void ResetWorkerFrame();
@@ -117,58 +118,65 @@ public:
 	// Job container creation helper
 	void JobContainerHelper(void* _data) {}
 
-	////////////
-	// STATIC //
-	////////////
+	//////////////////////////////////
+	// CONSIDERED STATIC BUT MEMBER //
+	//////////////////////////////////
 
 	// Create a job
-	static PeonJob* CreateJob(std::function<void()> _function);
+	PeonJob* CreateJob(std::function<void()> _function);
 
 	// Create a job as child
-	static PeonJob* CreateChildJob(std::function<void()> _function)
-	{
-		return CreateChildJob(PeonWorker::GetCurrentJob(), _function);
-	}
+	PeonJob* CreateChildJob(std::function<void()> _function);
 
 	// Create a job as child for the given parent job
-	static PeonJob* CreateChildJob(PeonJob* _parentJob, std::function<void()> _function);
+	PeonJob* CreateChildJob(PeonJob* _parentJob, std::function<void()> _function);
+
+	// Create a container
+	Container* CreateContainer();
 
 	// Run a job
-	static void StartJob(PeonJob* _job);
+	void StartJob(PeonJob* _job);
 
 	// Wait for a job to continue
-	static void WaitForJob(PeonJob* _job);
+	void WaitForJob(PeonJob* _job);
 
-	// REMOVER ESSAS FUNÇÕES OU USAR DEBUG #DEFINE
-	static void BlockThreadsStatus(bool _status);
-	static bool ThreadsBlocked();
+	///////////////////////
+	// STATIC BUT MEMBER //
+	///////////////////////
 
 	// Return the current thread executing this code
-	static PeonWorker* GetCurrentPeon()
-	{
-		int currentThreadIdentifier = __InternalPeon::PeonWorker::GetCurrentLocalThreadIdentifier();
-		return &PeonSystem::m_JobWorkers[currentThreadIdentifier];
-	}
+	PeonWorker* GetCurrentPeon();
 
 	// Return the default worker thread
-	__InternalPeon::PeonWorker* GetDefaultWorkerThread()
-	{
-		return &m_JobWorkers[0];
-	}
+	__InternalPeon::PeonWorker* GetDefaultWorkerThread();
 
-	////////////
-	////////////
-	////////////
+	// Block, release and return the current worker execution status (allow/disallow worker threads to pick new jobs)
+	void BlockWorkerExecution() { BlockThreadsStatus(true); }
+	void ReleaseWorkerExecution() { BlockThreadsStatus(false); }
+	bool WorkerExecutionStatus() { return ThreadsBlocked(); }
+
+	// Return the current job for the actual context
+	PeonJob* GetCurrentJob();
+
+	// Return the current worker for the actual context
+	PeonWorker* GetCurrentWorker();
+
+	// Return the current worker index for the actual context
+	int GetCurrentWorkerIndex();
+
+protected:
+
+	// Should not be used externally, set and check the thread block status
+	void BlockThreadsStatus(bool _status);
+	bool ThreadsBlocked();
 
 private:
-
-
 
 	// The total of worker threads
 	unsigned int m_TotalWokerThreads;
 
 	// The worker thread array
-	static __InternalPeon::PeonWorker* m_JobWorkers;
+	__InternalPeon::PeonWorker* m_JobWorkers;
 
 	// The thread user data
 	std::vector<void*> m_ThredUserData;

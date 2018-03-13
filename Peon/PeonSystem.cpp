@@ -8,7 +8,7 @@
 __InternalPeon::PeonSystem::PeonSystem()
 {
 	// Set the initial data
-	// ...
+	__InternalPeon::PeonSystem::m_JobWorkers = nullptr;
 }
 
 __InternalPeon::PeonSystem::PeonSystem(const __InternalPeon::PeonSystem& other)
@@ -18,9 +18,6 @@ __InternalPeon::PeonSystem::PeonSystem(const __InternalPeon::PeonSystem& other)
 __InternalPeon::PeonSystem::~PeonSystem()
 {
 }
-
-// The worker thread array
-__InternalPeon::PeonWorker* __InternalPeon::PeonSystem::m_JobWorkers = nullptr;
 
 __InternalPeon::PeonJob* __InternalPeon::PeonSystem::CreateJob(std::function<void()> _function)
 {
@@ -71,6 +68,16 @@ __InternalPeon::PeonJob* __InternalPeon::PeonSystem::CreateChildJob(PeonJob* _pa
     return freshJob;
 }
 
+__InternalPeon::PeonJob* __InternalPeon::PeonSystem::CreateChildJob(std::function<void()> _function)
+{
+	return CreateChildJob(PeonWorker::GetCurrentJob(), _function);
+}
+
+__InternalPeon::Container* __InternalPeon::PeonSystem::CreateContainer()
+{
+	return CreateJob([=] { JobContainerHelper(nullptr); });
+}
+
 void __InternalPeon::PeonSystem::StartJob(__InternalPeon::PeonJob* _job)
 {
 	// Get the worker thread for this job
@@ -91,6 +98,42 @@ void __InternalPeon::PeonSystem::WaitForJob(__InternalPeon::PeonJob* _job)
 		// Try to preempt another job (or just yield)
 		workerThread->ExecuteThread(nullptr);
 	}
+}
+
+__InternalPeon::PeonWorker* __InternalPeon::PeonSystem::GetCurrentPeon()
+{
+	int currentThreadIdentifier = __InternalPeon::PeonWorker::GetCurrentLocalThreadIdentifier();
+	return &PeonSystem::m_JobWorkers[currentThreadIdentifier];
+}
+
+__InternalPeon::PeonWorker* __InternalPeon::PeonSystem::GetDefaultWorkerThread()
+{
+	return &m_JobWorkers[0];
+}
+
+__InternalPeon::PeonJob* __InternalPeon::PeonSystem::GetCurrentJob()
+{
+	return __InternalPeon::PeonWorker::GetCurrentJob();
+}
+
+__InternalPeon::PeonWorker* __InternalPeon::PeonSystem::GetCurrentWorker()
+{
+	return __InternalPeon::PeonSystem::GetCurrentPeon();
+}
+
+int __InternalPeon::PeonSystem::GetCurrentWorkerIndex()
+{
+	return __InternalPeon::PeonWorker::GetCurrentLocalThreadIdentifier();
+}
+
+unsigned int __InternalPeon::PeonSystem::GetTotalWorkers()
+{
+	return m_TotalWokerThreads;
+}
+
+__InternalPeon::PeonWorker* __InternalPeon::PeonSystem::GetJobWorkers()
+{
+	return m_JobWorkers;
 }
 
 void __InternalPeon::PeonSystem::ResetWorkerFrame()
