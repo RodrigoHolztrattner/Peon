@@ -3,6 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "PeonStealingQueue.h"
 
+#include <algorithm>
+
 ///////////////
 // NAMESPACE //
 ///////////////
@@ -81,17 +83,13 @@ void __InternalPeon::PeonStealingQueue::Push(PeonJob* _job)
 
 #endif
 
-    long b = m_Bottom;
+	long b = m_Bottom.load(std::memory_order_acquire);
 
     // Push the job
     m_DequeBuffer[b & QueueMask(m_BufferSize)] = _job;
 
-    // ensure the job is written before b+1 is published to other threads.
-    // on x86/64, a compiler barrier is enough.
-    std::atomic_thread_fence(std::memory_order_seq_cst );
-
     // Set the new bottom
-    m_Bottom = b + 1;
+	m_Bottom.store(b + 1l, std::memory_order_release);
 }
 
 __InternalPeon::PeonJob* __InternalPeon::PeonStealingQueue::Pop()
@@ -102,50 +100,43 @@ __InternalPeon::PeonJob* __InternalPeon::PeonStealingQueue::Pop()
 	std::lock_guard<std::mutex> lock(m_DebugMutex);
 
 #endif
-	
-    long b = m_Bottom - 1;
 
-    // Try to lock our overhead mutex (take a look at the variable description for more info)
-	if(!m_OverheadMutex.try_lock())
+	long b = m_Bottom.load(std::memory_order_acquire);
+	b = b - 1;
+	m_Bottom.store(b, std::memory_order_release);
+	long t = m_Top.load(std::memory_order_acquire);
+
+	if (t <= b)
 	{
+		// non-empty queue
+		PeonJob* job = m_DequeBuffer[b & QueueMask(m_BufferSize)];
+		if (t != b)
+		{
+			// There's still more than one item left in the queue
+			return job;
+		}
+	
+		long expectedTop = t;
+		long desiredTop = t + 1;
+
+		if (!m_Top.compare_exchange_weak(expectedTop, desiredTop,
+			std::memory_order_acq_rel))
+		{
+			// Someone already took the last item, abort
+			job = nullptr;
+		}
+
+		m_Bottom.store(t + 1, std::memory_order_release);
+
+		return job;
+	}
+	else
+	{
+		// Deque was already empty
+		m_Bottom.store(t, std::memory_order_release);
+		m_Bottom = t;
 		return nullptr;
 	}
-
-	// Set the new bottom
-    m_Bottom.exchange(b, std::memory_order_seq_cst );
-	
-	// Deque status...
-    long t = m_Top;
-
-	// Unlock our overhead mutex
-	m_OverheadMutex.unlock();
-
-    if (t <= b)
-    {
-        // non-empty queue
-        PeonJob* job = m_DequeBuffer[b & QueueMask(m_BufferSize)];
-		if (t != b)
-        {
-            // There's still more than one item left in the queue
-            return job;
-        }
-
-        // This is the last item in the queue
-        if (!m_Top.compare_exchange_strong(t, t + 1, std::memory_order_seq_cst ))
-        {
-            // failed race against steal operation
-            job = nullptr;
-        }
-
-        m_Bottom = t + 1;
-        return job;
-    }
-    else
-    {
-        // Deque was already empty
-        m_Bottom = t;
-        return nullptr;
-    }
 }
 
 __InternalPeon::PeonJob* __InternalPeon::PeonStealingQueue::Steal()
@@ -157,35 +148,28 @@ __InternalPeon::PeonJob* __InternalPeon::PeonStealingQueue::Steal()
 
 #endif
 
-    long t = m_Top;
+	long t = m_Top.load(std::memory_order_acquire);
 
     // ensure that top is always read before bottom.
     // loads will not be reordered with other loads on x86, so a compiler barrier is enough.
-    std::atomic_thread_fence(std::memory_order_seq_cst );
+	std::atomic_thread_fence(std::memory_order_release);
+	long b = m_Bottom.load(std::memory_order_acquire);
 
-    // Deque status...
-    long b = m_Bottom;
+	// Deque status...
     if (t < b)
     {
         // non-empty queue
         PeonJob* job = m_DequeBuffer[t & QueueMask(m_BufferSize)];
 
-		// Try to lock our overhead mutex (take a look at the variable description for more info)
-		if (!m_OverheadMutex.try_lock())
-		{
-			return nullptr;
-		}
+		long expectedTop = t;
+		long desiredTop = t + 1;
 
         // the interlocked function serves as a compiler barrier, and guarantees that the read happens before the CAS.
-        if (!m_Top.compare_exchange_strong(t, t + 1, std::memory_order_seq_cst )) // Mudar para strong?
+		if (!m_Top.compare_exchange_weak(expectedTop, desiredTop, std::memory_order_acq_rel))
         {
             // a concurrent steal or pop operation removed an element from the deque in the meantime. Unlock our overhead mutex and return a nullptr
-			m_OverheadMutex.unlock();
             return nullptr;
         }
-		
-		// Unlock our overhead mutex
-		m_OverheadMutex.unlock();
 
         return job;
     }

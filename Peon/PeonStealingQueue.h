@@ -74,13 +74,6 @@ public:
 	// The deque buffer
 	PeonJob** m_DequeBuffer;
 
-	// The overhead mutex
-	// I found that when, inside a job, there is a sleep operation or the job itself takes too long to complete, in some rare cases the last job
-	// inside this queue will be executed twice, this mutex is used to prevent this from happening, we will be using the try_lock operation to
-	// ensure the worker thread will still be operating case we lost the lock by another thread. Keep in mind that, as the mutex scope is very
-	// small, this wont be adding a noticeable overhead (even in real time applications, like games).
-	std::mutex m_OverheadMutex;
-
 #ifdef JobWorkerDebug
 
 	// Our debug mutex
