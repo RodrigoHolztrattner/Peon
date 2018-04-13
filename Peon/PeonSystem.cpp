@@ -78,6 +78,16 @@ __InternalPeon::Container* __InternalPeon::PeonSystem::CreateContainer()
 	return CreateJob([=] { JobContainerHelper(nullptr); });
 }
 
+__InternalPeon::Container* __InternalPeon::PeonSystem::CreateChildContainer()
+{
+	return CreateChildJob(PeonWorker::GetCurrentJob(), [=] { JobContainerHelper(nullptr); });
+}
+
+__InternalPeon::Container* __InternalPeon::PeonSystem::CreateChildContainer(PeonJob* _parentJob)
+{
+	return CreateChildJob([=] { JobContainerHelper(nullptr); });
+}
+
 void __InternalPeon::PeonSystem::StartJob(__InternalPeon::PeonJob* _job)
 {
 	// Get the worker thread for this job

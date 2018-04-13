@@ -125,7 +125,7 @@ public:
 	// Create a job
 	PeonJob* CreateJob(std::function<void()> _function);
 
-	// Create a job as child
+	// Create a job as child for the current job in execution
 	PeonJob* CreateChildJob(std::function<void()> _function);
 
 	// Create a job as child for the given parent job
@@ -133,6 +133,12 @@ public:
 
 	// Create a container
 	Container* CreateContainer();
+
+	// Create a child container for the current job in execution
+	Container* CreateChildContainer();
+
+	// Create a child container for the given parent job
+	Container* CreateChildContainer(PeonJob* _parentJob);
 
 	// Run a job
 	void StartJob(PeonJob* _job);

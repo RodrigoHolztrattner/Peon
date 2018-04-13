@@ -50,7 +50,7 @@
 // The maximum and minimum number of created jobs (we will create a random amount between those 2 values each "frame")
 // The maximum value should not be higher then the MaximumNumberJobQueue/(TotalDependantJobs * 2) defined above
 #define MaximumNumberJobs			(MaximumNumberJobQueue/(TotalDependantJobs * 4))
-#define MinimumNumberJobs			(MaximumNumberJobs * 0.8)
+#define MinimumNumberJobs			((uint32_t)(MaximumNumberJobs * 0.8))
 
 ////////////////
 // STRUCTURES //
