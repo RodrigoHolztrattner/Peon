@@ -119,7 +119,7 @@ __InternalPeon::PeonJob* __InternalPeon::PeonStealingQueue::Pop()
 		long expectedTop = t;
 		long desiredTop = t + 1;
 
-		if (!m_Top.compare_exchange_weak(expectedTop, desiredTop,
+		if (!m_Top.compare_exchange_strong(expectedTop, desiredTop,
 			std::memory_order_acq_rel))
 		{
 			// Someone already took the last item, abort
@@ -165,7 +165,7 @@ __InternalPeon::PeonJob* __InternalPeon::PeonStealingQueue::Steal()
 		long desiredTop = t + 1;
 
         // the interlocked function serves as a compiler barrier, and guarantees that the read happens before the CAS.
-		if (!m_Top.compare_exchange_weak(expectedTop, desiredTop, std::memory_order_acq_rel))
+		if (!m_Top.compare_exchange_strong(expectedTop, desiredTop, std::memory_order_acq_rel))
         {
             // a concurrent steal or pop operation removed an element from the deque in the meantime. Unlock our overhead mutex and return a nullptr
             return nullptr;
