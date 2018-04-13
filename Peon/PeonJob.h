@@ -24,8 +24,9 @@
 // __InternalPeon
 PeonNamespaceBegin(__InternalPeon)
 
-// WorkerThread class
+// Classes we know
 class PeonWorker;
+class PeonSystem;
 
 ////////////
 // GLOBAL //
@@ -36,6 +37,9 @@ class PeonWorker;
 ////////////////////////////////////////////////////////////////////////////////
 class PeonJob
 {
+	// Friend classes
+	friend PeonSystem;
+
 public:
 	PeonJob();
 	PeonJob(const PeonJob&);
@@ -48,7 +52,7 @@ public:
 	void SetJobFunction(PeonJob* _parentJob, std::function<void()> _function);
 
 	// Finish this job
-	void Finish();
+	void Finish(PeonWorker* _peonWorker);
 
 	// Run the job function
 	void RunJobFunction();
@@ -79,10 +83,14 @@ protected:
 	// The current worker thread
 	PeonWorker* m_CurrentWorkerThread;
 
+	// The total number of jobs that depends on this (and the job array)
+	std::atomic<int32_t> m_TotalJobsThatDependsOnThis;
+	PeonJob* m_JobsThatDependsOnThis[15];
+
 public: // Arrumar public / private
 
 	// The number of unfinished jobs
-	std::atomic<int> m_UnfinishedJobs;
+	std::atomic<int32_t> m_UnfinishedJobs;
 };
 
 // The container type

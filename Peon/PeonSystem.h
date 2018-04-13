@@ -140,6 +140,9 @@ public:
 	// Wait for a job to continue
 	void WaitForJob(PeonJob* _job);
 
+	// Add a job dependency (remember to NOT start this job manually)
+	void AddJobDependency(PeonJob* _thisFirst, PeonJob* _thenThis);
+
 	///////////////////////
 	// STATIC BUT MEMBER //
 	///////////////////////

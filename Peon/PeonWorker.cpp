@@ -172,7 +172,7 @@ void __InternalPeon::PeonWorker::ExecuteThread(void* _arg)
 		job->RunJobFunction();
 
 		// Finish the job
-		job->Finish();
+		job->Finish(this);
 	}
 	else
     {

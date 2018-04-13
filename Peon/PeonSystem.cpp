@@ -100,6 +100,12 @@ void __InternalPeon::PeonSystem::WaitForJob(__InternalPeon::PeonJob* _job)
 	}
 }
 
+void __InternalPeon::PeonSystem::AddJobDependency(PeonJob* _thisFirst, PeonJob* _thenThis)
+{
+	const int32_t count = _thisFirst->m_TotalJobsThatDependsOnThis.fetch_add(1);
+	_thisFirst->m_JobsThatDependsOnThis[count] = _thenThis;
+}
+
 __InternalPeon::PeonWorker* __InternalPeon::PeonSystem::GetCurrentPeon()
 {
 	int currentThreadIdentifier = __InternalPeon::PeonWorker::GetCurrentLocalThreadIdentifier();

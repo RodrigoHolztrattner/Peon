@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "PeonJob.h"
 #include "PeonWorker.h"
+#include "PeonSystem.h"
 
 ///////////////
 // NAMESPACE //
@@ -26,6 +27,7 @@ bool __InternalPeon::PeonJob::Initialize()
     m_CurrentWorkerThread = nullptr;
     m_ParentJob = nullptr;
     m_UnfinishedJobs = 1;
+	m_TotalJobsThatDependsOnThis = 0;
 
     return true;
 }
@@ -39,7 +41,7 @@ void __InternalPeon::PeonJob::SetJobFunction(PeonJob* _parentJob, std::function<
     m_ParentJob = _parentJob;
 }
 
-void __InternalPeon::PeonJob::Finish()
+void __InternalPeon::PeonJob::Finish(PeonWorker* _peonWorker)
 {
 	// Decrement the number of unfinished jobs
 	m_UnfinishedJobs--;
@@ -53,7 +55,14 @@ void __InternalPeon::PeonJob::Finish()
 		if (m_ParentJob != nullptr)
 		{
 			// Call the finish job for our parent
-			m_ParentJob->Finish();
+			m_ParentJob->Finish(_peonWorker);
+		}
+		
+		// Run follow-up jobs
+		for (int32_t i = 0; i < m_TotalJobsThatDependsOnThis; ++i)
+		{
+			// Insert them on the queue
+			_peonWorker->GetWorkerQueue()->Push(m_JobsThatDependsOnThis[i]);
 		}
 	}
 }
