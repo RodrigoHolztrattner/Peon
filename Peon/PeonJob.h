@@ -35,7 +35,7 @@ class PeonSystem;
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: PeonJob
 ////////////////////////////////////////////////////////////////////////////////
-class PeonJob
+class PeonJob // alignas(32)
 {
 	// Friend classes
 	friend PeonSystem;
@@ -85,7 +85,7 @@ protected:
 
 	// The total number of jobs that depends on this (and the job array)
 	std::atomic<int32_t> m_TotalJobsThatDependsOnThis;
-	PeonJob* m_JobsThatDependsOnThis[15];
+	PeonJob* m_JobsThatDependsOnThis[17];
 
 public: // Arrumar public / private
 
