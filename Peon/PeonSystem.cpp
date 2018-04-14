@@ -85,7 +85,7 @@ __InternalPeon::Container* __InternalPeon::PeonSystem::CreateChildContainer()
 
 __InternalPeon::Container* __InternalPeon::PeonSystem::CreateChildContainer(PeonJob* _parentJob)
 {
-	return CreateChildJob([=] { JobContainerHelper(nullptr); });
+	return CreateChildJob(_parentJob, [=] { JobContainerHelper(nullptr); });
 }
 
 void __InternalPeon::PeonSystem::StartJob(__InternalPeon::PeonJob* _job)
