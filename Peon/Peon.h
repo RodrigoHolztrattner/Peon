@@ -26,10 +26,13 @@ PeonNamespaceBegin(Peon)
 // GLOBAL //
 ////////////
 
-typedef __InternalPeon::PeonWorker	Worker;
-typedef __InternalPeon::PeonJob		Job;
-typedef __InternalPeon::Container	Container;
-typedef __InternalPeon::PeonSystem	Scheduler;
+typedef __InternalPeon::PeonWorker		Worker;
+typedef __InternalPeon::PeonJob			Job;
+typedef __InternalPeon::Container		Container;
+typedef __InternalPeon::PeonSystem		Scheduler;
+
+template <typename TypeClass>
+using Allocator = __InternalPeon::PeonAllocator<TypeClass>;
 
 // Peon
 PeonNamespaceEnd(Peon)

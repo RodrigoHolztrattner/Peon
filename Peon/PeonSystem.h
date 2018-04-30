@@ -9,6 +9,8 @@
 #include "PeonConfig.h"
 #include <atomic>
 #include <vector>
+#include <cstdlib>
+#include <new>
 #include "PeonJob.h"
 #include "PeonWorker.h"
 
@@ -26,6 +28,58 @@
 
 // __InternalPeon
 PeonNamespaceBegin(__InternalPeon)
+
+///////////////
+// ALLOCATOR //
+///////////////
+
+// The allocator type
+template <class T>
+struct PeonAllocator
+{
+	typedef T value_type;
+	PeonAllocator() = default;
+
+	// The allocate method
+	template <class U> constexpr PeonAllocator(const PeonAllocator<U>&) noexcept {}
+	static [[nodiscard]] T* allocate(std::size_t n)
+	{
+		// Get the current worker thread in execution
+		PeonWorker* currentWorker = PeonWorker::GetCurrentLocalThreadWorker();
+
+		// Get the worker allocator
+		auto& allocator = currentWorker->GetMemoryAllocator();
+
+		// Allocate the data
+		if (auto p = (T*)(allocator.AllocateData(currentWorker, sizeof(T) * n))) return p;
+
+		throw std::bad_alloc();
+	}
+
+	// The deallocate method
+	static void deallocate(T* p, std::size_t) noexcept
+	{
+		// Get the current worker thread in execution
+		PeonWorker* currentWorker = PeonWorker::GetCurrentLocalThreadWorker();
+
+		// Get the worker allocator
+		auto& allocator = currentWorker->GetMemoryAllocator();
+
+		// Deallocate the data
+		allocator.DeallocateData((char*)(p));
+	}
+
+	// The deleter method
+	void operator()(T* b)
+	{
+
+	}
+
+};
+template <class T, class U>
+bool operator==(const PeonAllocator<T>&, const PeonAllocator<U>&) { return true; }
+template <class T, class U>
+bool operator!=(const PeonAllocator<T>&, const PeonAllocator<U>&) { return false; }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: PeonSystem

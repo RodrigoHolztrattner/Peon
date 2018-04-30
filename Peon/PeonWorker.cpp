@@ -22,12 +22,18 @@ static unsigned int JobWorkerId = 0;
 #endif
 
 // The thread local identifier and current job
-thread_local int						CurrentLocalThreadIdentifier;
-thread_local __InternalPeon::PeonJob*	CurrentThreadJob;
+thread_local int							CurrentLocalThreadIdentifier;
+thread_local __InternalPeon::PeonJob*		CurrentThreadJob;
+thread_local __InternalPeon::PeonWorker*	CurrentWorker = nullptr;
 
 int __InternalPeon::PeonWorker::GetCurrentLocalThreadIdentifier()
 {
 	return CurrentLocalThreadIdentifier;
+}
+
+__InternalPeon::PeonWorker*__InternalPeon::PeonWorker::GetCurrentLocalThreadWorker()
+{
+	return CurrentWorker;
 }
 
 void __InternalPeon::PeonWorker::SetQueueSize(unsigned int _jobBufferSize)
@@ -140,6 +146,11 @@ void __InternalPeon::PeonWorker::ResetFreeList()
 	m_WorkQueue.Reset();
 }
 
+__InternalPeon::PeonMemoryAllocator& __InternalPeon::PeonWorker::GetMemoryAllocator()
+{
+	return m_MemoryAllocator;
+}
+
 void __InternalPeon::PeonWorker::ExecuteThread(void* _arg)
 {
 	if (m_OwnerSystem->WorkerExecutionStatus())
@@ -164,10 +175,10 @@ void __InternalPeon::PeonWorker::ExecuteThread(void* _arg)
 
 		// Set the current job for this thread
 		CurrentThreadJob = job;
-		if (job->GetTotalUnfinishedJobs() == 0)
-		{
-			result = result;
-		}
+
+		// Set the current worker
+		CurrentWorker = this;
+
 		// Run the selected job
 		job->RunJobFunction();
 

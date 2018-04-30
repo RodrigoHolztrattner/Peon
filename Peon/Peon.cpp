@@ -148,7 +148,7 @@ void Loop(TestInstance* _testInstance, std::string _loopName)
 	// Check the count total
 	if (_counter != (_loopTotal * (TotalDependantJobs + 1)))
 	{
-		std::cout "Invalid couter found, the values are: " << _counter << " and: " << (_loopTotal * (TotalDependantJobs + 1)) << std::endl;
+		std::cout << "Invalid couter found, the values are: " << _counter << " and: " << (_loopTotal * (TotalDependantJobs + 1)) << std::endl;
 		std::this_thread::sleep_for(std::chrono::seconds(10));
 		exit(1);
 	}
@@ -227,8 +227,77 @@ void CreateSchedulerAndRun(int _totalWorkerThreads, bool _createInSeparatedThrea
 	m_TestInstanceVector.push_back(testInstance);
 }
 
+
+
 int main()
 {
+	struct TestStruct
+	{
+		uint32_t bla[65536];
+	};
+
+	int totalJobs = 512 + 1;
+	Peon::Scheduler scheduler;
+	scheduler.Initialize(1, totalJobs * 2);
+
+	clock_t begin = clock();
+
+	Peon::Container* container = scheduler.CreateContainer();
+
+	for (int i = 0; i < totalJobs; i++)
+	{
+		Peon::Job* childJob = scheduler.CreateChildJob(container, []()
+		{
+			TestStruct* str[512];
+			for (int i = 0; i < 512; i++)
+			{
+				str[i] = new TestStruct(); // Peon::Allocator<TestStruct>::allocate(1);
+			}
+
+			for (int i = 0; i < 512; i++)
+			{
+				delete str[i]; //  Peon::Allocator<TestStruct>::deallocate(str, 1);
+			}
+		});
+
+		scheduler.StartJob(childJob);
+	}
+
+	scheduler.StartJob(container);
+	scheduler.WaitForJob(container);
+
+	clock_t begin2 = clock();
+
+	Peon::Container* container2 = scheduler.CreateContainer();
+
+	for (int i = 0; i < totalJobs; i++)
+	{
+		Peon::Job* childJob = scheduler.CreateChildJob(container2, []()
+		{
+			TestStruct* str[512];
+			for (int i = 0; i < 512; i++)
+			{
+				str[i] = Peon::Allocator<TestStruct>::allocate(1);
+			}
+
+			for (int i = 0; i < 512; i++)
+			{
+				Peon::Allocator<TestStruct>::deallocate(str[i], 1);
+			}
+		});
+
+		scheduler.StartJob(childJob);
+	}
+
+	scheduler.StartJob(container2);
+	scheduler.WaitForJob(container2);
+
+	clock_t end = clock();
+	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+	double elapsed_secs2 = double(end - begin2) / CLOCKS_PER_SEC;
+
+	std::cout << elapsed_secs << " - " << elapsed_secs2 << std::endl;
+
 	// Create the schedulers and run the loop method
 	CreateSchedulerAndRun(2, true,		"A");
 	CreateSchedulerAndRun(3, true,		"B");
