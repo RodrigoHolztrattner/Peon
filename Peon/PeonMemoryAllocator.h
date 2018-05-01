@@ -38,6 +38,10 @@ class PeonMemoryAllocator
 {
 private:
 
+	// All friend classes
+	friend PeonSystem;
+	friend PeonWorker;
+
 	// The integer size used
 	using IntegerSize = uint32_t;
 
@@ -75,7 +79,7 @@ private:
 	};
 
 public:
-	PeonMemoryAllocator();
+	PeonMemoryAllocator(PeonWorker* _owner);
 	PeonMemoryAllocator(const PeonMemoryAllocator&);
 	~PeonMemoryAllocator();
 
@@ -89,7 +93,18 @@ public: //////////
 	// Deallocate the input block
 	void DeallocateData(char* _data);
 
+protected:
+
+	// Deallocate a block
+	void DeallocateBlock(MemoryBlock* _block);
+
+	// Release our deallocation chain and make each block be deallocated by the correct owner
+	void ReleaseDeallocationChain();
+
 private:
+
+	// Push a deallocation block (that aren't ours and must be deallocated by the System)
+	void PushDeallocationBlock(MemoryBlock* _block);
 
 	// Determine the correct block index that should be used for the amount of data needed (also adjust he input memory to the correct size)
 	IntegerSize DetermineCorrectBlock(IntegerSize& _amount);
@@ -111,15 +126,30 @@ private:
 		return targetlevel;
 	}
 
+	// Validate this allocator (check for any leaks, only use this when all used memory was properly deallocated)
+	void Validate(bool _destructorCheck = false);
+
 ///////////////
 // VARIABLES //
 private: //////
+
+	// The owner worker
+	PeonWorker* m_Owner;
 
 	// The memory block free list
 	MemoryBlock* m_MemoryBlockFreeList[std::numeric_limits<IntegerSize>::digits];
 
 	// The total number of blocks
 	IntegerSize m_TotalMemoryBlocks[std::numeric_limits<IntegerSize>::digits];
+
+#ifdef _DEBUG 
+	// The total number of used blocks
+	IntegerSize m_TotalUsedMemoryBlocks[std::numeric_limits<IntegerSize>::digits];
+#endif
+
+	// The deallocation chain (those blocks aren't from the owner Worker, wi will retain those until the System tell us to
+	// deallocate them using the correct Worker
+	MemoryBlock* m_DeallocationChain;
 };
 
 // __InternalPeon

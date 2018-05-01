@@ -84,6 +84,9 @@ public:
 	// Reset the free list
 	void ResetFreeList();
 
+	// Refresh the memory allocator
+	void RefreshMemoryAllocator();
+
 	// Return a reference to our memory allocator
 	PeonMemoryAllocator& GetMemoryAllocator();
 

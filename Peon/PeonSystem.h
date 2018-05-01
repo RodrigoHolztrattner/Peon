@@ -72,9 +72,15 @@ struct PeonAllocator
 	// The deleter method
 	void operator()(T* b)
 	{
+		// Get the current worker thread in execution
+		PeonWorker* currentWorker = PeonWorker::GetCurrentLocalThreadWorker();
 
+		// Get the worker allocator
+		auto& allocator = currentWorker->GetMemoryAllocator();
+
+		// Deallocate the data
+		allocator.DeallocateData((char*)(b));
 	}
-
 };
 template <class T, class U>
 bool operator==(const PeonAllocator<T>&, const PeonAllocator<U>&) { return true; }

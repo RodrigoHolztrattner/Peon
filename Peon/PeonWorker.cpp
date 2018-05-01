@@ -5,11 +5,11 @@
 #include "PeonSystem.h"
 #include <chrono>
 
-__InternalPeon::PeonWorker::PeonWorker()
+__InternalPeon::PeonWorker::PeonWorker() : m_MemoryAllocator(this)
 {
 }
 
-__InternalPeon::PeonWorker::PeonWorker(const __InternalPeon::PeonWorker& other)
+__InternalPeon::PeonWorker::PeonWorker(const __InternalPeon::PeonWorker& other) : m_MemoryAllocator(this)
 {
 }
 
@@ -62,7 +62,12 @@ bool __InternalPeon::PeonWorker::Initialize(__InternalPeon::PeonSystem* _ownerSy
 	{
 		// Set the current local thread identifier
 		CurrentLocalThreadIdentifier = m_ThreadId;
+
+		// Set the current worker
+		CurrentWorker = this;
 	}
+
+
 
 	return true;
 }
@@ -71,6 +76,7 @@ void __InternalPeon::PeonWorker::ExecuteThreadAux()
 {
 	// Set the global per thread id
 	CurrentLocalThreadIdentifier = m_ThreadId;
+	CurrentWorker = this;
 
 	// Run the execute function
 	while (true)
@@ -133,7 +139,7 @@ __InternalPeon::PeonStealingQueue* __InternalPeon::PeonWorker::GetWorkerQueue()
 void __InternalPeon::PeonWorker::Yield()
 {
     std::this_thread::yield();
-	std::this_thread::sleep_for(std::chrono::microseconds(1));
+	// std::this_thread::sleep_for(std::chrono::microseconds(1));
 }
 
 int __InternalPeon::PeonWorker::GetThreadId()
@@ -144,6 +150,11 @@ int __InternalPeon::PeonWorker::GetThreadId()
 void __InternalPeon::PeonWorker::ResetFreeList()
 {
 	m_WorkQueue.Reset();
+}
+
+void __InternalPeon::PeonWorker::RefreshMemoryAllocator()
+{
+	m_MemoryAllocator.ReleaseDeallocationChain();
 }
 
 __InternalPeon::PeonMemoryAllocator& __InternalPeon::PeonWorker::GetMemoryAllocator()
@@ -175,9 +186,6 @@ void __InternalPeon::PeonWorker::ExecuteThread(void* _arg)
 
 		// Set the current job for this thread
 		CurrentThreadJob = job;
-
-		// Set the current worker
-		CurrentWorker = this;
 
 		// Run the selected job
 		job->RunJobFunction();

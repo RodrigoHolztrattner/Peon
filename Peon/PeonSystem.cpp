@@ -159,6 +159,9 @@ void __InternalPeon::PeonSystem::ResetWorkerFrame()
 	{
 		// Reset the free list
 		m_JobWorkers[i].ResetFreeList();
+
+		// Refresh the memory allocator
+		m_JobWorkers[i].RefreshMemoryAllocator();
 	}
 }
 
