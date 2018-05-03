@@ -85,8 +85,6 @@ void __InternalPeon::PeonMemoryAllocator::DeallocateBlock(MemoryBlock* _block)
 
 void __InternalPeon::PeonMemoryAllocator::ReleaseDeallocationChain()
 {
-	int count = 0;
-	
 	// Until we each the list end
 	while (m_DeallocationChain != nullptr)
 	{
@@ -101,14 +99,7 @@ void __InternalPeon::PeonMemoryAllocator::ReleaseDeallocationChain()
 
 		// Deallocate the block
 		blockOwner->GetMemoryAllocator().DeallocateBlock(block);
-
-		count++;
 	}
-
-	std::cout << this << " -> Total deallocation blocks on chain: " << count << std::endl;
-
-	// Validate this allocator
-	Validate();
 }
 
 void __InternalPeon::PeonMemoryAllocator::PushDeallocationBlock(MemoryBlock* _block)
