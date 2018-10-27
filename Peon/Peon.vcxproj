@@ -23,7 +23,7 @@
     <ProjectGuid>{1F883236-2912-4969-9744-4CAF7D5AF0DD}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Peon</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
