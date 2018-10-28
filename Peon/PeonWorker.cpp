@@ -136,12 +136,6 @@ __InternalPeon::PeonStealingQueue* __InternalPeon::PeonWorker::GetWorkerQueue()
     return &m_WorkQueue;
 }
 
-void __InternalPeon::PeonWorker::Yield()
-{
-    std::this_thread::yield();
-	// std::this_thread::sleep_for(std::chrono::microseconds(1));
-}
-
 int __InternalPeon::PeonWorker::GetThreadId()
 {
     return m_ThreadId;
@@ -166,7 +160,7 @@ void __InternalPeon::PeonWorker::ExecuteThread(void* _arg)
 {
 	if (m_OwnerSystem->WorkerExecutionStatus())
 	{
-		Yield();
+		std::this_thread::yield();
 		return;
 	}
 
@@ -199,7 +193,7 @@ void __InternalPeon::PeonWorker::ExecuteThread(void* _arg)
         CurrentThreadJob = nullptr;
 
         // Give our time slice away
-        Yield();
+		std::this_thread::yield();
     }
 }
 

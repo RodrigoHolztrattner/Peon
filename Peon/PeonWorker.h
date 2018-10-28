@@ -72,9 +72,6 @@ public:
     // Return this PeonWorker work queue
 	PeonStealingQueue* GetWorkerQueue();
 
-	// Yield the current time slice
-	void Yield();
-
 	// Return the thread id
 	int GetThreadId();
 
